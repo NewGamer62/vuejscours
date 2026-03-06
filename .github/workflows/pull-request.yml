@@ -1,0 +1,42 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  populate-pr:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    permissions:
+      pull-requests: write
+      issues: read
+    steps:
+      - name: Copy issue content to PR body
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branch = context.payload.pull_request.head.ref;
+            const match = branch.match(/^(\d+)-/);
+            if (!match) return;
+
+            const issueNumber = parseInt(match[1])+1;
+            const issue = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber
+            });
+
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              body: `> Contenu de l'issue [#${issueNumber} — ${issue.data.title}](${issue.data.html_url})\n\n${issue.data.body}\n\n---\n\nCloses #${issueNumber}`
+            });
+
+  build:
+    uses: vfourny/.github/.github/workflows/build.yml@main
+    with:
+      node_version: '24'
+      is_tested: false
+      is_build_upload: false

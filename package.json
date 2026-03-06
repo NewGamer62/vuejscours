@@ -1,0 +1,41 @@
+{
+  "name": "tcg-spa",
+  "version": "1.0.0",
+  "author": "VF",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0 <25.0.0"
+  },
+  "scripts": {
+    "dev": "docker-compose up -d && vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "prepare": "husky",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "ts:check": "vue-tsc --noEmit",
+    "api:start": "docker-compose up -d",
+    "api:stop": "docker-compose down",
+    "api:reset": "docker-compose exec api npx tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "naive-ui": "2.43.2",
+    "pinia": "2.3.1",
+    "socket.io-client": "4.8.3",
+    "vue": "3.5.29",
+    "vue-router": "4.6.4"
+  },
+  "devDependencies": {
+    "@vfourny/node-toolkit": "1.1.6",
+    "@vitejs/plugin-vue": "5.2.4",
+    "eslint": "9.39.3",
+    "husky": "9.1.7",
+    "lint-staged": "15.5.2",
+    "prettier": "3.8.1",
+    "typescript": "5.9.3",
+    "vite": "5.4.21",
+    "vue-tsc": "3.2.5"
+  }
+}

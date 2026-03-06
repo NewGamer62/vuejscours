@@ -1,0 +1,38 @@
+name: tcg
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tcg_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tcg_user
+      POSTGRES_PASSWORD: tcg_password
+      POSTGRES_DB: tcg_database
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U tcg_user -d tcg_database']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: seyrinian/tcg-api:latest
+    container_name: tcg_api
+    restart: unless-stopped
+    ports:
+      - '3001:3001'
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+      JWT_SECRET: tcg-classroom-secret-key
+      DATABASE_URL: postgresql://tcg_user:tcg_password@postgres:5432/tcg_database
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
