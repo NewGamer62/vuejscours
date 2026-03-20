@@ -1,38 +1,38 @@
+<script setup lang="ts">
+/* Auteur : Noa Gaillard */
+import { useRouter } from 'vue-router'
+
+import { useAuthStore } from '@/stores/auth.store'
+
+const authStore = useAuthStore()
+const router = useRouter()
+
+const handleSignOut = () => {
+  authStore.signOut()
+  // RG6 : Redirection vers la page de connexion
+  router.push('/sign-in')
+}
+</script>
+
 <template>
-  <NLayoutHeader
-    bordered
-    style="padding: 0 24px; position: sticky; top: 0; z-index: 100"
-  >
-    <NSpace justify="space-between" align="center" style="height: 56px">
-      <NSpace align="center" :size="16">
-        <RouterLink to="/">TCG SPA</RouterLink>
-        <NButton
-          tag="a"
-          :href="`${apiBaseUrl.replace('/api', '')}/api-docs`"
-          target="_blank"
-          text
-          size="small"
-        >
-          API Docs
-        </NButton>
-        <NButton
-          tag="a"
-          href="https://making-rerun-61323218.figma.site/"
-          target="_blank"
-          text
-          size="small"
-        >
-          Maquettes
-        </NButton>
-      </NSpace>
-      <NSpace align="center" :size="16">
-        <NText depth="3">Renseigner le user connecté ici</NText>
-        <NButton size="small">Déconnexion</NButton>
-      </NSpace>
-    </NSpace>
-  </NLayoutHeader>
+  <header v-if="authStore.isAuthenticated" class="header-bar">
+    <span class="username">{{ authStore.user?.username }}</span>
+
+    <nav>
+      <RouterLink to="/">Accueil</RouterLink>
+      <NButton quaternary type="error" @click="handleSignOut">
+        Déconnexion
+      </NButton>
+    </nav>
+  </header>
 </template>
 
-<script setup lang="ts">
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL as string
-</script>
+<style scoped>
+.header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background: #eee;
+}
+</style>
