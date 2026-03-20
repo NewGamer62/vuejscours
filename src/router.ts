@@ -15,17 +15,15 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore()
   const publicPages = ['/sign-in', '/sign-up']
   const isPublic = publicPages.includes(to.path)
 
-  // RG2 : Rediriger vers connexion si non authentifié sur route privée
   if (!isPublic && !authStore.isAuthenticated) {
     return next('/sign-in')
   }
 
-  // RG3 : Rediriger vers accueil si déjà connecté sur login/inscription
   if (isPublic && authStore.isAuthenticated) {
     return next('/')
   }
