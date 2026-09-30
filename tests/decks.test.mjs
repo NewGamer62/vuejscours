@@ -3,7 +3,9 @@ import test from 'node:test'
 
 import { useColors } from '../src/composables/useColors.ts'
 import {
+  filterCards,
   isCardDisabled,
+  normalizeSearchText,
   resolveDeckCards,
   toggleCardSelection,
   validateDeck,
@@ -168,4 +170,186 @@ test('Card grid selection logic: RG5 and RG6', () => {
 
   // Once deselected, card 11 is re-enabled
   assert.strictEqual(isCardDisabled(11, selected, maxSelected), false)
+})
+
+const sampleCards = [
+  {
+    id: 1,
+    name: 'Bulbizarre',
+    hp: 60,
+    attack: 40,
+    type: 'Grass',
+    pokedexNumber: 1,
+    imgUrl: 'https://example.com/1.png',
+  },
+  {
+    id: 4,
+    name: 'Salamèche',
+    hp: 50,
+    attack: 52,
+    type: 'Fire',
+    pokedexNumber: 4,
+    imgUrl: 'https://example.com/4.png',
+  },
+  {
+    id: 7,
+    name: 'Carapuce',
+    hp: 55,
+    attack: 48,
+    type: 'Water',
+    pokedexNumber: 7,
+    imgUrl: 'https://example.com/7.png',
+  },
+  {
+    id: 25,
+    name: 'Pikachu',
+    hp: 45,
+    attack: 55,
+    type: 'Electric',
+    pokedexNumber: 25,
+    imgUrl: 'https://example.com/25.png',
+  },
+  {
+    id: 145,
+    name: 'Électhor',
+    hp: 90,
+    attack: 90,
+    type: 'Electric',
+    pokedexNumber: 145,
+    imgUrl: 'https://example.com/145.png',
+  },
+  {
+    id: 150,
+    name: 'Mewtwo',
+    hp: 100,
+    attack: 110,
+    type: 'Psychic',
+    pokedexNumber: 150,
+    imgUrl: 'https://example.com/150.png',
+  },
+]
+
+test('normalizeSearchText: removes diacritics, converts to lowercase, and trims', () => {
+  assert.strictEqual(normalizeSearchText('Salamèche'), 'salameche')
+  assert.strictEqual(normalizeSearchText('Électhor'), 'electhor')
+  assert.strictEqual(normalizeSearchText('  PIKACHU  '), 'pikachu')
+  assert.strictEqual(normalizeSearchText(''), '')
+  assert.strictEqual(normalizeSearchText(null), '')
+})
+
+test('filterCards: case-insensitive search (RG2)', () => {
+  const lower = filterCards(sampleCards, 'pikachu')
+  assert.strictEqual(lower.length, 1)
+  assert.strictEqual(lower[0].name, 'Pikachu')
+
+  const upper = filterCards(sampleCards, 'PIKACHU')
+  assert.strictEqual(upper.length, 1)
+  assert.strictEqual(upper[0].name, 'Pikachu')
+
+  const mixed = filterCards(sampleCards, 'pIkAcHu')
+  assert.strictEqual(mixed.length, 1)
+  assert.strictEqual(mixed[0].name, 'Pikachu')
+})
+
+test('filterCards: accent-insensitive search (RG2)', () => {
+  // Without accent in query matching accented name
+  const salameche = filterCards(sampleCards, 'salameche')
+  assert.strictEqual(salameche.length, 1)
+  assert.strictEqual(salameche[0].name, 'Salamèche')
+
+  const electhor = filterCards(sampleCards, 'electhor')
+  assert.strictEqual(electhor.length, 1)
+  assert.strictEqual(electhor[0].name, 'Électhor')
+
+  // With accent in query matching accented name
+  const electhorAccented = filterCards(sampleCards, 'Électhor')
+  assert.strictEqual(electhorAccented.length, 1)
+  assert.strictEqual(electhorAccented[0].name, 'Électhor')
+})
+
+test('filterCards: partial string search (RG2)', () => {
+  const bizarre = filterCards(sampleCards, 'bizarre')
+  assert.strictEqual(bizarre.length, 1)
+  assert.strictEqual(bizarre[0].name, 'Bulbizarre')
+
+  const car = filterCards(sampleCards, 'cara')
+  assert.strictEqual(car.length, 1)
+  assert.strictEqual(car[0].name, 'Carapuce')
+
+  const thor = filterCards(sampleCards, 'thor')
+  assert.strictEqual(thor.length, 1)
+  assert.strictEqual(thor[0].name, 'Électhor')
+})
+
+test('filterCards: empty query, whitespace, and nullish return all cards', () => {
+  assert.strictEqual(filterCards(sampleCards, '').length, sampleCards.length)
+  assert.strictEqual(filterCards(sampleCards, '   ').length, sampleCards.length)
+  assert.strictEqual(filterCards(sampleCards, null).length, sampleCards.length)
+  assert.strictEqual(
+    filterCards(sampleCards, undefined).length,
+    sampleCards.length,
+  )
+})
+
+test('filterCards: non-matching query returns empty array', () => {
+  const result = filterCards(sampleCards, 'dracaufeu')
+  assert.deepStrictEqual(result, [])
+
+  const noMatch = filterCards(sampleCards, 'xyz999')
+  assert.deepStrictEqual(noMatch, [])
+})
+
+test('filterCards: activeFilter "selected" filters to selectedCardIds', () => {
+  const selectedResult = filterCards(sampleCards, '', {
+    activeFilter: 'selected',
+    selectedCardIds: [4, 25],
+  })
+  assert.strictEqual(selectedResult.length, 2)
+  assert.deepStrictEqual(
+    selectedResult.map((c) => c.id).sort((a, b) => a - b),
+    [4, 25],
+  )
+
+  // Combined: activeFilter 'selected' AND query
+  const combined = filterCards(sampleCards, 'sala', {
+    activeFilter: 'selected',
+    selectedCardIds: [4, 25],
+  })
+  assert.strictEqual(combined.length, 1)
+  assert.strictEqual(combined[0].id, 4)
+  assert.strictEqual(combined[0].name, 'Salamèche')
+})
+
+test('filterCards: selection preservation when filtering (RG3)', () => {
+  // Suppose user has already selected 4 cards
+  const userSelectedCardIds = [1, 4, 25, 145]
+
+  // User filters view to search for Pikachu
+  const displayed = filterCards(sampleCards, 'pikachu')
+  assert.strictEqual(displayed.length, 1)
+  assert.strictEqual(displayed[0].name, 'Pikachu')
+
+  // RG3 requirement: userSelectedCardIds remains completely intact
+  assert.strictEqual(userSelectedCardIds.length, 4)
+  assert.deepStrictEqual(userSelectedCardIds, [1, 4, 25, 145])
+
+  // Even if a non-matching card is searched, selection is preserved
+  const emptyDisplay = filterCards(sampleCards, 'nonexistent')
+  assert.strictEqual(emptyDisplay.length, 0)
+  assert.deepStrictEqual(userSelectedCardIds, [1, 4, 25, 145])
+
+  // Deselecting the currently visible card via toggleCardSelection
+  const updatedSelection = toggleCardSelection(
+    displayed[0].id,
+    userSelectedCardIds,
+  )
+  // Pikachu (25) is removed, but Bulbizarre (1), Salamèche (4), Électhor (145) remain!
+  assert.strictEqual(updatedSelection.includes(25), false)
+  assert.deepStrictEqual(updatedSelection, [1, 4, 145])
+})
+
+test('filterCards: robust edge cases (empty array, nullish list)', () => {
+  assert.deepStrictEqual(filterCards([], 'pikachu'), [])
+  assert.deepStrictEqual(filterCards(null, 'pikachu'), [])
+  assert.deepStrictEqual(filterCards(undefined, 'pikachu'), [])
 })

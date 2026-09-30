@@ -94,3 +94,52 @@ export function toggleCardSelection(
   }
   return selectedCardIds
 }
+
+/**
+ * Normalise une chaîne de caractères en supprimant les accents,
+ * en passant en minuscules et en retirant les espaces superflus.
+ */
+export function normalizeSearchText(str: string): string {
+  if (!str) return ''
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+}
+
+export interface FilterCardsOptions {
+  activeFilter?: 'all' | 'selected'
+  selectedCardIds?: number[]
+}
+
+/**
+ * Filtre les cartes selon la recherche textuelle (insensible à la casse et aux accents)
+ * et le filtre d'affichage (toutes ou sélectionnées) (Issue 4 / RG2).
+ */
+export function filterCards(
+  cards: Card[],
+  query?: string | null,
+  options?: FilterCardsOptions,
+): Card[] {
+  if (!Array.isArray(cards)) return []
+
+  let list = cards
+
+  // Si activeFilter === 'selected', filtrer uniquement les cartes sélectionnées
+  if (options?.activeFilter === 'selected') {
+    const selectedIds = new Set(options.selectedCardIds ?? [])
+    list = list.filter((c) => selectedIds.has(c.id))
+  }
+
+  // Filtrage par texte de recherche normalisé
+  const normalizedQuery = normalizeSearchText(query || '')
+  if (normalizedQuery.length > 0) {
+    list = list.filter((c) => {
+      const normalizedName = normalizeSearchText(c.name || '')
+      return normalizedName.includes(normalizedQuery)
+    })
+  }
+
+  return list
+}

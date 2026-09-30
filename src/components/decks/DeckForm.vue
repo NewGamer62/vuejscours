@@ -73,7 +73,35 @@
 
         <!-- RG1 : Grille sélectionnable de toutes les cartes disponibles -->
         <NSpin :show="loadingCards">
+          <!-- État de recherche sans résultat (Ticket 4) -->
+          <div
+            v-if="
+              !loadingCards && cards.length > 0 && displayedCards.length === 0
+            "
+            class="empty-search-state"
+          >
+            <NEmpty
+              :description="
+                searchQuery.trim()
+                  ? 'Aucune carte ne correspond à votre recherche.'
+                  : 'Aucune carte sélectionnée.'
+              "
+            >
+              <template v-if="searchQuery.trim()" #extra>
+                <NButton size="small" secondary @click="searchQuery = ''">
+                  Effacer la recherche
+                </NButton>
+              </template>
+              <template v-else-if="activeFilter === 'selected'" #extra>
+                <NButton size="small" secondary @click="activeFilter = 'all'">
+                  Voir toutes les cartes
+                </NButton>
+              </template>
+            </NEmpty>
+          </div>
+
           <CardGrid
+            v-else
             v-model:selected-card-ids="selectedCardIds"
             :cards="displayedCards"
             :max-selected="10"
@@ -112,6 +140,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import CardGrid from '@/components/cards/CardGrid.vue'
 import { useDecks } from '@/composables/useDecks'
 import type { Card } from '@/types'
+import { filterCards } from '@/utils/deck.js'
 
 interface Props {
   initialName?: string
@@ -173,15 +202,10 @@ const nameError = computed(() => {
 })
 
 const displayedCards = computed(() => {
-  let list = cards.value
-  if (activeFilter.value === 'selected') {
-    list = list.filter((c) => selectedCardIds.value.includes(c.id))
-  }
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase().trim()
-    list = list.filter((c) => c.name.toLowerCase().includes(q))
-  }
-  return list
+  return filterCards(cards.value, searchQuery.value, {
+    activeFilter: activeFilter.value,
+    selectedCardIds: selectedCardIds.value,
+  })
 })
 
 /**
@@ -222,6 +246,12 @@ const handleSubmit = () => {
 
 .search-section {
   margin: 12px 0;
+}
+
+.empty-search-state {
+  padding: 48px 16px;
+  display: flex;
+  justify-content: center;
 }
 
 .form-actions {
