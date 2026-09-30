@@ -166,7 +166,15 @@ export const useGameStore = defineStore('game', () => {
   })
 
   const isVictory = computed<boolean>(() => {
+    // Victoire par KOs (3 KOs atteints)
+    if (myBoard.value.score >= 3) return true
+    if (opponentBoard.value.score >= 3) return false
+
     if (winner.value === null || winner.value === undefined) return false
+
+    if (winner.value === 'player') {
+      return true
+    }
 
     if (
       authStore.user &&
@@ -190,10 +198,6 @@ export const useGameStore = defineStore('game', () => {
       return true
     }
 
-    // Victoire par KOs (3 KOs atteints)
-    if (myBoard.value.score >= 3) return true
-    if (opponentBoard.value.score >= 3) return false
-
     return false
   })
 
@@ -204,7 +208,7 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function connect() {
-    if (socket.value?.connected) return
+    if (socket.value) return
 
     const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001'
     const newSocket = io(socketUrl, {
@@ -225,11 +229,11 @@ export const useGameStore = defineStore('game', () => {
     })
 
     newSocket.on('roomsList', (list: Room[]) => {
-      rooms.value = list
+      rooms.value = Array.isArray(list) ? list : []
     })
 
     newSocket.on('roomsListUpdated', (list: Room[]) => {
-      rooms.value = list
+      rooms.value = Array.isArray(list) ? list : []
     })
 
     newSocket.on('roomCreated', (data: { roomId: string | number }) => {
@@ -250,7 +254,10 @@ export const useGameStore = defineStore('game', () => {
 
     newSocket.on('gameStateUpdated', (state: GameState) => {
       gameState.value = state
-      const raw = state as unknown as Record<string, unknown>
+      const raw = (state && typeof state === 'object' ? state : {}) as Record<
+        string,
+        unknown
+      >
       if (typeof raw.lastAction === 'string') {
         lastEventMessage.value = raw.lastAction
       } else if (typeof raw.message === 'string') {
@@ -271,6 +278,9 @@ export const useGameStore = defineStore('game', () => {
       opponentDisconnectedMessage.value = msg
       lastEventMessage.value = msg
       gameStatus.value = 'ended'
+      if (!winner.value) {
+        winner.value = authStore.user?.id || 'player'
+      }
     })
 
     newSocket.on('error', (err: { message: string } | string) => {
@@ -285,6 +295,7 @@ export const useGameStore = defineStore('game', () => {
 
   function disconnect() {
     if (socket.value) {
+      socket.value.removeAllListeners?.()
       socket.value.disconnect()
       socket.value = null
     }
