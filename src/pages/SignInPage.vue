@@ -35,6 +35,7 @@
 
 <script setup lang="ts">
 /* Auteur : Noa Gaillard */
+import { useMessage } from 'naive-ui'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -42,6 +43,7 @@ import { useAuthStore } from '@/stores/auth.store'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const message = useMessage()
 
 const email = ref('')
 const password = ref('')
@@ -58,6 +60,7 @@ const handleSignIn = async () => {
   } catch (_error) {
     // On préfixe par '_' pour indiquer à ESLint que la variable est ignorée volontairement
     // On évite le console.log pour respecter la règle "no-console"
+    message.error('Échec de la connexion. Email ou mot de passe incorrect.')
   } finally {
     loading.value = false
   }

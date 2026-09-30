@@ -20,7 +20,7 @@ jobs:
             const match = branch.match(/^(\d+)-/);
             if (!match) return;
 
-            const issueNumber = parseInt(match[1])+1;
+            const issueNumber = parseInt(match[1]);
             const issue = await github.rest.issues.get({
               owner: context.repo.owner,
               repo: context.repo.repo,

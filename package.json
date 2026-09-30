@@ -10,6 +10,7 @@
     "dev": "docker-compose up -d && vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "node --test tests/decks.test.mjs",
     "prepare": "husky",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",

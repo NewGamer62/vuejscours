@@ -32,4 +32,5 @@ export interface DeckCard {
   id: number
   deckId: number
   cardId: number
+  card?: Card
 }

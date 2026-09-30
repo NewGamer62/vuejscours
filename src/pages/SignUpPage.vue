@@ -20,9 +20,16 @@
         placeholder="Password"
       />
     </NFormItem>
-    <NButton type="primary" round attr-type="submit" style="width: 100%"
-      >S'inscrire</NButton
+    <NButton
+      type="primary"
+      round
+      attr-type="submit"
+      style="width: 100%"
+      :loading="loading"
+      :disabled="loading"
     >
+      S'inscrire
+    </NButton>
     <div class="footer">
       <p>
         Déjà un compte ?
@@ -33,21 +40,35 @@
 </template>
 
 <script setup lang="ts">
+import { useMessage } from 'naive-ui'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import { useAuthStore } from '@/stores/auth.store'
+
 const authStore = useAuthStore()
+const router = useRouter()
+const message = useMessage()
 
 const username = ref('')
 const email = ref('')
 const password = ref('')
+const loading = ref(false)
 
 const handleSignUp = async () => {
-  authStore.signUp({
-    username: username.value,
-    email: email.value,
-    password: password.value,
-  })
+  loading.value = true
+  try {
+    await authStore.signUp({
+      username: username.value,
+      email: email.value,
+      password: password.value,
+    })
+    router.push('/')
+  } catch (_error) {
+    message.error("L'inscription a échoué. Veuillez vérifier vos informations.")
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 <style scoped>
