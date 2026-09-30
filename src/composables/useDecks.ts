@@ -30,7 +30,7 @@ export function useDecks() {
     }
   }
 
-  const resolveCards = (deckCards: DeckCard[] | undefined) => {
+  const resolveCards = (deckCards: (DeckCard | number)[] | undefined) => {
     return resolveDeckCards(deckCards, cachedCards.value)
   }
 

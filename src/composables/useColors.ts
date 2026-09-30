@@ -47,7 +47,8 @@ export function useColors() {
    * Retourne la couleur hexadécimale associée à un type Pokémon.
    * @example getTypeColor('Fire') // → '#F08030'
    */
-  const getTypeColor = (type: PokemonType) => TYPE_COLORS[type]
+  const getTypeColor = (type: PokemonType | string) =>
+    TYPE_COLORS[type as PokemonType] ?? '#8c8c8c'
 
   return { COLORS, hpColor, getTypeColor }
 }

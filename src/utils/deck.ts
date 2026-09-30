@@ -4,21 +4,35 @@ import type { Card, DeckCard } from '../types/index.js'
  * Associe chaque carte de deck (DeckCard) à ses données complètes (Card).
  */
 export function resolveDeckCards(
-  deckCards: DeckCard[] | undefined,
+  deckCards: (DeckCard | number)[] | undefined,
   cardsList: Card[] = [],
 ): Card[] {
   if (!deckCards || deckCards.length === 0) return []
   return deckCards.map((dc) => {
+    if (typeof dc === 'number') {
+      const found = cardsList.find((c) => c.id === dc)
+      if (found) return found
+      return {
+        id: dc,
+        name: `Carte #${dc}`,
+        hp: 0,
+        attack: 0,
+        type: 'Normal',
+        pokedexNumber: dc,
+        imgUrl: '',
+      }
+    }
     if (dc.card) return dc.card
-    const found = cardsList.find((c) => c.id === dc.cardId)
+    const cardId = dc.cardId ?? (dc as unknown as Card).id
+    const found = cardsList.find((c) => c.id === cardId)
     if (found) return found
     return {
-      id: dc.cardId,
-      name: `Carte #${dc.cardId}`,
+      id: cardId,
+      name: `Carte #${cardId}`,
       hp: 0,
       attack: 0,
       type: 'Normal',
-      pokedexNumber: dc.cardId,
+      pokedexNumber: cardId,
       imgUrl: '',
     }
   })

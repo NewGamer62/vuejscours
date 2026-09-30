@@ -28,11 +28,13 @@
     <!-- Image de la carte (RG1) -->
     <div class="card-image-wrapper">
       <img
+        v-if="card.imgUrl"
         :src="card.imgUrl"
         :alt="card.name"
         class="card-image"
         loading="lazy"
       />
+      <span v-else class="card-image-placeholder">🎴</span>
     </div>
 
     <!-- Barre de HP courants si fournie (RG4) -->
@@ -92,7 +94,7 @@ const emit = defineEmits<(e: 'click', card: Card) => void>()
 const { getTypeColor, hpColor } = useColors()
 
 const formattedPokedexNumber = computed(() => {
-  return String(props.card.pokedexNumber).padStart(3, '0')
+  return String(props.card?.pokedexNumber ?? 0).padStart(3, '0')
 })
 
 const typeColor = computed(() => {
