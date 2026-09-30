@@ -46,8 +46,14 @@
         </NEmpty>
       </div>
 
-      <!-- RG1 : Liste des decks affichés -->
-      <NGrid v-else responsive="screen" cols="1 m:2" :x-gap="16" :y-gap="16">
+      <!-- RG1 & RG2 : Liste des decks affichés responsive -->
+      <NGrid
+        v-else
+        responsive="screen"
+        cols="1 s:1 m:2 l:3 xl:3"
+        :x-gap="16"
+        :y-gap="16"
+      >
         <NGi v-for="deck in decks" :key="deck.id">
           <NCard hoverable class="deck-card">
             <template #header>
@@ -281,6 +287,18 @@ const handleDeleteDeck = async (deckId: number) => {
   justify-content: flex-end;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+@media (max-width: 639px) {
+  .deck-actions {
+    justify-content: stretch;
+  }
+
+  .deck-actions > *,
+  .deck-actions :deep(.n-button) {
+    flex: 1 1 auto;
+    text-align: center;
+  }
 }
 
 .empty-state {

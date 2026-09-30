@@ -16,8 +16,8 @@
 
         <!-- RG2 : Compteur en temps réel du nombre de cartes sélectionnées -->
         <div class="counter-section">
-          <NSpace align="center" justify="space-between" class="counter-row">
-            <NSpace align="center">
+          <div class="counter-row">
+            <div class="counter-tags-group">
               <NTag
                 :type="
                   selectedCardIds.length === 10
@@ -44,17 +44,19 @@
                   Veuillez retirer {{ selectedCardIds.length - 10 }} carte(s).
                 </span>
               </NText>
-            </NSpace>
+            </div>
 
-            <NRadioGroup v-model:value="activeFilter" size="small">
-              <NRadioButton value="all">
-                Toutes les cartes ({{ cards.length }})
-              </NRadioButton>
-              <NRadioButton value="selected">
-                Sélectionnées ({{ selectedCardIds.length }})
-              </NRadioButton>
-            </NRadioGroup>
-          </NSpace>
+            <div class="counter-filter-group">
+              <NRadioGroup v-model:value="activeFilter" size="small">
+                <NRadioButton value="all">
+                  Toutes les cartes ({{ cards.length }})
+                </NRadioButton>
+                <NRadioButton value="selected">
+                  Sélectionnées ({{ selectedCardIds.length }})
+                </NRadioButton>
+              </NRadioGroup>
+            </div>
+          </div>
         </div>
 
         <!-- Champ de recherche en temps réel (Issue 4) -->
@@ -236,8 +238,23 @@ const handleSubmit = () => {
 }
 
 .counter-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
   gap: 12px;
+}
+
+.counter-tags-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.counter-filter-group {
+  display: flex;
+  align-items: center;
 }
 
 .counter-hint {
@@ -257,5 +274,35 @@ const handleSubmit = () => {
 .form-actions {
   display: flex;
   justify-content: flex-end;
+}
+
+@media (max-width: 639px) {
+  .counter-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .counter-filter-group :deep(.n-radio-group) {
+    display: flex;
+    width: 100%;
+  }
+
+  .counter-filter-group :deep(.n-radio-button) {
+    flex: 1;
+    text-align: center;
+  }
+
+  .form-actions {
+    justify-content: stretch;
+  }
+
+  .form-actions :deep(.n-space) {
+    width: 100%;
+  }
+
+  .form-actions :deep(.n-button) {
+    flex: 1;
+  }
 }
 </style>

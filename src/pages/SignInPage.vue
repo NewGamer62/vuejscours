@@ -1,36 +1,40 @@
 <template>
-  <NForm @submit.prevent="handleSignIn">
-    <NFormItem label="Email" required style="width: 100%">
-      <NInput v-model:value="email" round type="text" placeholder="Email" />
-    </NFormItem>
-    <NFormItem label="Mot de passe" required style="width: 100%">
-      <NInput
-        v-model:value="password"
-        round
-        type="password"
-        show-password-on="mousedown"
-        placeholder="Password"
-      />
-    </NFormItem>
+  <div class="auth-page-container">
+    <NCard class="auth-card" title="Connexion" :bordered="true">
+      <NForm @submit.prevent="handleSignIn">
+        <NFormItem label="Email" required style="width: 100%">
+          <NInput v-model:value="email" round type="text" placeholder="Email" />
+        </NFormItem>
+        <NFormItem label="Mot de passe" required style="width: 100%">
+          <NInput
+            v-model:value="password"
+            round
+            type="password"
+            show-password-on="mousedown"
+            placeholder="Password"
+          />
+        </NFormItem>
 
-    <NButton
-      type="primary"
-      round
-      attr-type="submit"
-      style="width: 100%"
-      :loading="loading"
-      :disabled="loading"
-    >
-      Se connecter
-    </NButton>
+        <NButton
+          type="primary"
+          round
+          attr-type="submit"
+          style="width: 100%"
+          :loading="loading"
+          :disabled="loading"
+        >
+          Se connecter
+        </NButton>
 
-    <div class="footer">
-      <p>
-        Pas encore de compte ?
-        <RouterLink to="/sign-up"><span>S'inscrire</span></RouterLink>
-      </p>
-    </div>
-  </NForm>
+        <div class="footer">
+          <p>
+            Pas encore de compte ?
+            <RouterLink to="/sign-up"><span>S'inscrire</span></RouterLink>
+          </p>
+        </div>
+      </NForm>
+    </NCard>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -68,10 +72,28 @@ const handleSignIn = async () => {
 </script>
 
 <style scoped>
+.auth-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(80vh - 64px);
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  margin: 32px auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+}
+
 .footer {
   display: flex;
   justify-content: center;
-  margin-top: 10px;
+  margin-top: 16px;
 }
 .footer span {
   text-decoration: none;

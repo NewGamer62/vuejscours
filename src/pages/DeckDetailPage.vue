@@ -101,7 +101,13 @@ onMounted(async () => {
 .deck-detail-page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px 0;
+  padding: 12px 0;
+}
+
+@media (min-width: 640px) {
+  .deck-detail-page {
+    padding: 24px 0;
+  }
 }
 
 .page-top-bar {
@@ -114,6 +120,19 @@ onMounted(async () => {
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
+}
+
+@media (max-width: 639px) {
+  .detail-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .detail-header :deep(.n-space) {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 .error-container {

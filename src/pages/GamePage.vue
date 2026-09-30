@@ -133,16 +133,30 @@ const handleLeaveGame = () => {
 .game-page-container {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 8px 4px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+  .game-page-container {
+    padding: 16px;
+  }
 }
 
 .game-board {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .game-board {
+    gap: 16px;
+  }
 }
 
 .zone-section {
   width: 100%;
+  box-sizing: border-box;
 }
 </style>

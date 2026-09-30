@@ -18,7 +18,7 @@ const handleSignOut = () => {
   <header v-if="authStore.isAuthenticated" class="header-bar">
     <span class="username">{{ authStore.user?.username }}</span>
 
-    <nav>
+    <nav class="header-nav">
       <RouterLink to="/">Accueil</RouterLink>
       <NButton quaternary type="error" @click="handleSignOut">
         Déconnexion
@@ -32,7 +32,22 @@ const handleSignOut = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
   padding: 10px 20px;
   background: #eee;
+  box-sizing: border-box;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.username {
+  font-weight: 600;
+  color: #333333;
 }
 </style>
