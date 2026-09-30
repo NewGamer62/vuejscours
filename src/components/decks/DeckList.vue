@@ -72,22 +72,54 @@
             </template>
 
             <!-- Aperçu miniature des cartes du deck (RG1 Issue 6) -->
-            <div class="deck-cards-preview">
-              <div
-                v-for="card in getPreviewCards(deck)"
-                :key="card.id"
-                class="mini-card-thumb"
-                :title="`${card.name} (#${card.pokedexNumber})`"
+            <div
+              v-if="getPreviewCards(deck).length === 0"
+              class="deck-cards-empty"
+            >
+              <NText depth="3" italic>Aucune carte dans ce deck</NText>
+            </div>
+            <div v-else class="deck-cards-preview">
+              <NTooltip
+                v-for="(card, index) in getPreviewCards(deck)"
+                :key="`${deck.id}-${card.id}-${index}`"
+                trigger="hover"
+                placement="top"
               >
-                <img
-                  v-if="card.imgUrl"
-                  :src="card.imgUrl"
-                  :alt="card.name"
-                  class="mini-card-image"
-                  loading="lazy"
-                />
-                <span v-else class="mini-card-placeholder">?</span>
-              </div>
+                <template #trigger>
+                  <div class="mini-card-thumb">
+                    <img
+                      v-if="card.imgUrl"
+                      :src="card.imgUrl"
+                      :alt="card.name"
+                      class="mini-card-image"
+                      loading="lazy"
+                    />
+                    <span v-else class="mini-card-placeholder">?</span>
+                  </div>
+                </template>
+                <div class="mini-card-tooltip">
+                  <div class="tooltip-header">
+                    <span class="tooltip-card-name">{{ card.name }}</span>
+                    <span class="tooltip-card-num">
+                      #{{ formatPokedex(card.pokedexNumber) }}
+                    </span>
+                  </div>
+                  <div class="tooltip-details">
+                    <span
+                      class="tooltip-type-badge"
+                      :style="{ backgroundColor: getTypeColor(card.type) }"
+                    >
+                      {{ card.type }}
+                    </span>
+                    <span v-if="card.hp" class="tooltip-stat"
+                      >PV {{ card.hp }}</span
+                    >
+                    <span v-if="card.attack" class="tooltip-stat"
+                      >ATK {{ card.attack }}</span
+                    >
+                  </div>
+                </div>
+              </NTooltip>
             </div>
 
             <!-- RG2 : Actions pour chaque deck (détail, modifier, supprimer) -->
@@ -142,6 +174,7 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { useApi } from '@/composables/useApi'
+import { useColors } from '@/composables/useColors'
 import { useDecks } from '@/composables/useDecks'
 import type { Card, Deck } from '@/types'
 
@@ -149,6 +182,11 @@ const router = useRouter()
 const message = useMessage()
 const api = useApi()
 const { loadAllCards, resolveDeckCards } = useDecks()
+const { getTypeColor } = useColors()
+
+const formatPokedex = (num?: number): string => {
+  return String(num ?? 0).padStart(3, '0')
+}
 
 const decks = ref<Deck[]>([])
 const loading = ref(true)
@@ -250,10 +288,22 @@ const handleDeleteDeck = async (deckId: number) => {
   text-overflow: ellipsis;
 }
 
+.deck-cards-empty {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafc;
+  border-radius: 8px;
+  border: 1px dashed #e0e0e6;
+  padding: 8px;
+}
+
 .deck-cards-preview {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  max-width: 244px;
   min-height: 52px;
   align-items: center;
 }
@@ -269,17 +319,75 @@ const handleDeleteDeck = async (deckId: number) => {
   justify-content: center;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.mini-card-thumb:hover {
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  border-color: #2080f0;
 }
 
 .mini-card-image {
   max-width: 90%;
   max-height: 90%;
   object-fit: contain;
+  pointer-events: none;
 }
 
 .mini-card-placeholder {
   font-size: 14px;
   color: #8c8c8c;
+}
+
+.mini-card-tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.tooltip-header {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.tooltip-card-name {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.tooltip-card-num {
+  font-family: monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.tooltip-details {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tooltip-type-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #ffffff;
+  text-transform: capitalize;
+}
+
+.tooltip-stat {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .deck-actions {

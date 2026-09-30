@@ -1,32 +1,58 @@
 import { ref } from 'vue'
 
 import type { Card, DeckCard } from '../types/index.js'
-import { resolveDeckCards } from '../utils/deck.js'
+import { createCardCache, resolveDeckCards } from '../utils/deck.js'
 import { useApi } from './useApi.js'
 
 export { resolveDeckCards }
 
 const cachedCards = ref<Card[]>([])
 const loadingCards = ref(false)
+let cardCache: ReturnType<typeof createCardCache> | null = null
+
+/**
+ * Réinitialise le cache de cartes partagé (utile pour les tests ou la réinitialisation).
+ */
+export function clearCardCache(): void {
+  cachedCards.value = []
+  loadingCards.value = false
+  if (cardCache) {
+    cardCache.clear()
+  }
+}
 
 export function useDecks() {
   const api = useApi()
 
+  const getOrCreateCache = () => {
+    if (!cardCache) {
+      cardCache = createCardCache(async () => {
+        loadingCards.value = true
+        try {
+          const cards = await api.getCards()
+          cachedCards.value = cards
+          return cards
+        } finally {
+          loadingCards.value = false
+        }
+      })
+    }
+    return cardCache
+  }
+
   /**
    * Charge toutes les cartes depuis l'API si elles ne sont pas déjà en cache.
-   * Partagé entre tous les composants (decks, détail, formulaires).
+   * Déduplique les requêtes concurrentes en vol (in-flight) et partage le résultat entre tous les composants.
    */
   const loadAllCards = async (): Promise<Card[]> => {
-    if (cachedCards.value.length > 0) {
-      return cachedCards.value
-    }
+    const cache = getOrCreateCache()
     loadingCards.value = true
     try {
-      const cards = await api.getCards()
+      const cards = await cache.loadAllCards()
       cachedCards.value = cards
       return cards
     } finally {
-      loadingCards.value = false
+      loadingCards.value = cache.isLoading()
     }
   }
 
@@ -39,5 +65,6 @@ export function useDecks() {
     loadingCards,
     loadAllCards,
     resolveDeckCards: resolveCards,
+    clearCardCache,
   }
 }

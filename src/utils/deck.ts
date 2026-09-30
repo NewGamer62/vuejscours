@@ -143,3 +143,48 @@ export function filterCards(
 
   return list
 }
+
+export interface CardCache {
+  loadAllCards: () => Promise<Card[]>
+  clear: () => void
+  getCached: () => Card[]
+  isLoading: () => boolean
+}
+
+/**
+ * Crée un gestionnaire de cache pour les cartes avec déduplication des requêtes en cours (in-flight)
+ * et mécanisme de réinitialisation. Garantit au plus UN seul appel réseau.
+ */
+export function createCardCache(fetchCards: () => Promise<Card[]>): CardCache {
+  let cached: Card[] | null = null
+  let inFlight: Promise<Card[]> | null = null
+  let loading = false
+
+  return {
+    loadAllCards: async () => {
+      if (cached !== null) return cached
+      if (inFlight) return inFlight
+
+      loading = true
+      inFlight = (async () => {
+        try {
+          const cards = await fetchCards()
+          cached = cards
+          return cards
+        } finally {
+          loading = false
+          inFlight = null
+        }
+      })()
+
+      return inFlight
+    },
+    clear: () => {
+      cached = null
+      inFlight = null
+      loading = false
+    },
+    getCached: () => cached ?? [],
+    isLoading: () => loading,
+  }
+}
